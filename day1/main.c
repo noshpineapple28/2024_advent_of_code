@@ -8,7 +8,7 @@ static FILE *fp;
 uint32_t get_num_lines(FILE **fp)
 {
     uint32_t lines = 0;
-
+    while (get)
     return lines;
 }
 
