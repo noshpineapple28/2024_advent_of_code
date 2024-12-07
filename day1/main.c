@@ -159,6 +159,8 @@ void main()
 
     // fill arrays
     parse_file();
+    // close file
+    fclose(fp);
 
     // sort arrays
     sort_lists(list_size, left);
