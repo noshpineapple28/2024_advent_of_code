@@ -57,16 +57,11 @@ uint8_t check_line(uint8_t *px, uint8_t len)
     while (i < len)
     {
         // copy list excluding current index
-        for (int j = 0; j < i; j++)
-        {
+        for (int j = 0; j < len; j++)
             copy[j] = px[j];
-            // printf("%d ", copy[j]);
-        }
         for (int j = i + 1; j < len; j++)
-        {
             copy[j - 1] = px[j];
-            // printf("%d ", copy[j]);
-        }
+            
         // check this current list
         if (determine_list_safety(copy, len - 1))
             return 1;
@@ -137,13 +132,11 @@ void main()
 
     uint16_t total_safe = 0;
     uint8_t output = 0;
-    uint16_t tot = 1;
 
     do
     {
         output = read_line();
         total_safe += (output == 2) ? 0 : output;
-        tot++;
     } while (output != 2);
 
     printf("Total Safe: %d\n", total_safe);
