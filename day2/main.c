@@ -123,7 +123,7 @@ uint8_t read_line()
 }
 
 /**
- * runs advent of code day 1
+ * runs advent of code day 2
  */
 void main()
 {
