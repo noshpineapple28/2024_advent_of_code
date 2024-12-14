@@ -5,4 +5,4 @@ main.o: main.c
 	gcc -c main.c
 
 clean:
-	del *.o *.exe
+	del *.o *.exe && cls

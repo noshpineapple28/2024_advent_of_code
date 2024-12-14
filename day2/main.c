@@ -1,36 +1,98 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <Math.h>
 
 // global vars
 static FILE *fp;
 
 /**
- * continues through a line until the terminator has been found
+ * given an array checks to see if the numbers within
+ *      aren't the same, are no more than 3 apart, and
+ *      if they're properly ascending/descending
+ * 
+ * @param px pointer to the array of numbers we are checking
+ * @param len the length of the array
+ * 
+ * @returns 1 if safe, 0 if not
  */
-void read_to_end_of_line()
+uint8_t determine_list_safety(uint8_t *px, uint8_t len)
 {
-    char c;
-    while ((c = fgetc(fp)) != '\n')
-        ;
+    uint8_t i = 1;
+    uint8_t is_asc = px[0] < px[1];
+    while (i < len)
+    {
+        int8_t dif = abs(px[i] - px[i - 1]);
+        if (
+            (is_asc && px[i] < px[i - 1]) ||
+            (!is_asc && px[i] > px[i - 1]) ||
+            (dif < 1 || dif > 3))
+        {
+            return 0;
+        }
+
+        i++;
+    }
+
+    return 1;
 }
 
 /**
- * reads through a line to determine whether its safe
+ * runs through a line to check if it is safe
  * 
+ * @param px pointer to the array of numbers we are checking
+ * @param len the length of the array
+ * 
+ * @returns 1 if safe, 0 if not
+ */
+uint8_t check_line(uint8_t *px, uint8_t len)
+{
+    uint8_t i = 0;
+    uint8_t *copy = (uint8_t *)malloc(sizeof(uint8_t) * len - 1);
+
+    // check if base list is fine
+    if (determine_list_safety(px, len))
+        return 1;
+
+    while (i < len)
+    {
+        // copy list excluding current index
+        for (int j = 0; j < i; j++)
+        {
+            copy[j] = px[j];
+            // printf("%d ", copy[j]);
+        }
+        for (int j = i + 1; j < len; j++)
+        {
+            copy[j - 1] = px[j];
+            // printf("%d ", copy[j]);
+        }
+        // check this current list
+        if (determine_list_safety(copy, len - 1))
+            return 1;
+
+        i++;
+    }
+
+    // free the line
+    free(copy);
+
+    return 0;
+}
+
+/**
+ * parses a line of numbers into an array of integers
+ *
  * @returns 0 if unsafe, 1 if safe, 2 if EOF found
  */
 uint8_t read_line()
 {
     // holds cur character and cur parsed num
     char buf[3];
+    char nums[8];
     uint8_t buf_i = 0;
     uint8_t nums_read = 0;
     char c;
-    // states
-    uint8_t is_asc = 0;
-    uint8_t cur_num = 0;
-    uint8_t prev_num = 0;
     // return value
     uint8_t is_safe = 1;
 
@@ -44,12 +106,9 @@ uint8_t read_line()
         {
             // null terminate
             buf[buf_i] = 0;
-            // update counts
             buf_i = 0;
-            nums_read++;
-            // swap vals and set new num
-            prev_num = cur_num;
-            cur_num = atoi(buf);
+            // update counts
+            nums[nums_read++] = atoi(buf);
         }
         else if (c == EOF)
         {
@@ -63,34 +122,9 @@ uint8_t read_line()
             continue;
         }
 
-        // determine is asc or desc
-        if (nums_read == 2)
-        {
-            is_asc = (prev_num < cur_num);
-        }
-        /**
-         * checks to make sure:
-         * 
-         * number is staying asc or desc,
-         * number is different,
-         * number changes by 1 - 3 digits
-         */
-        if (
-            nums_read >= 2 &&
-            ((is_asc && (prev_num > cur_num || cur_num - prev_num > 3)) ||
-             (!is_asc && (prev_num < cur_num || prev_num - cur_num > 3)) ||
-             prev_num == cur_num))
-        {
-            // if not end of a line, read to the end
-            if (c != '\n' && c != EOF)
-                read_to_end_of_line();
-
-            return 0;
-        }
-
     } while (c != EOF && c != '\n');
 
-    return 1;
+    return check_line(nums, nums_read);
 }
 
 /**
