@@ -57,7 +57,7 @@ uint8_t check_line(uint8_t *px, uint8_t len)
     while (i < len)
     {
         // copy list excluding current index
-        for (int j = 0; j < len; j++)
+        for (int j = 0; j < i; j++)
             copy[j] = px[j];
         for (int j = i + 1; j < len; j++)
             copy[j - 1] = px[j];
