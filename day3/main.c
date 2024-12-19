@@ -36,13 +36,12 @@ void load_file_to_buffer(FILE *fp, char *c, uint16_t len)
  * @param px substring to check
  * @returns 1 if valid, 0 if invalid
  */
-uint8_t is_mul(char *px)
+uint8_t custom_str_cmp(char *px, char *cmp)
 {
     uint8_t i = 0;
-    char mul[] = {'m', 'u', 'l', '('};
-    while (i < 4)
+    while (cmp[i] != 0)
     {
-        if (*(px++) != mul[i])
+        if (*(px + i) != cmp[i])
             return 0;
         i++;
     }
@@ -124,7 +123,7 @@ uint16_t seek_mul(char *buffer, uint16_t pos)
 {
     uint16_t i = pos;
 
-    while (!is_mul(buffer + i) && *(buffer + i + 3) != 0)
+    while (!custom_str_cmp(buffer + i, "mul(") && *(buffer + i + 3) != 0)
         i++;
 
     return i;
@@ -147,9 +146,7 @@ uint16_t seek_number_end(char *c, uint16_t pos, char terminator)
     uint16_t i = pos;
 
     while (is_digit(*(c + i)))
-    {
         i++;
-    }
 
     // if the number is not terminated by the correct terminator
     //      OR the number's length is 0
@@ -163,53 +160,73 @@ uint16_t seek_number_end(char *c, uint16_t pos, char terminator)
 /**
  * runs through a buffer and seeks out all mul commands,
  *      and returns their added up sums of outputs
- * 
+ *
  * @param buffer the buffer to read through
- * 
+ *
  * @returns a total of all the sums of muls in the given file
  */
 uint32_t find_muls(char *buffer)
 {
+    uint16_t pos = 0;
     // vals to help parse muls
-    uint16_t next_mul = 0;
-    uint16_t num_start = 0;
     uint16_t num_end = 0;
     uint16_t num1 = 0;
     uint16_t num2 = 0;
     // total product
     uint32_t total = 0;
+    // state
+    uint8_t do_mul = 1;
 
     do
     {
-        // get first number
-        next_mul = seek_mul(buffer, num_end);
-        printf("%d %d %d", next_mul, file_len, buffer[next_mul]);
-        if (buffer[next_mul] == 0)
-            break;
-
-        num_end = seek_number_end(buffer, next_mul + 4, ',');
-        if (!num_end)
+        // check for do
+        if (!do_mul && custom_str_cmp(buffer + pos, "do()"))
         {
-            num_end = next_mul + 1;
-            printf("%c", buffer[next_mul+4]);
-            printf("\n\tNo comma\n");
+            // pass over onto the next command
+            pos += 4;
+            do_mul = !do_mul;
             continue;
         }
-        num1 = parse_number(buffer, next_mul + 4, num_end);
-        // get second number
-        num_start = num_end + 1;
-        num_end = seek_number_end(buffer, num_start, ')');
-        printf("first: %d ", num1);
-        if (!num_end)
+        // check for mul
+        else if (do_mul && custom_str_cmp(buffer + pos, "mul("))
         {
-            num_end = next_mul + 1;
-            printf("\n\tNo bracket\n");
+            // holds position at start of string
+            uint16_t pos_start = pos;
+            // store where in buffer the number ends
+            num_end = seek_number_end(buffer, pos + 4, ',');
+            if (!num_end)
+            {
+                pos = pos_start + 1;
+                continue;
+            }
+            num1 = parse_number(buffer, pos + 4, num_end);
+            // set position to after first number
+            pos = num_end + 1;
+            // get where the next number ends
+            num_end = seek_number_end(buffer, pos, ')');
+            if (!num_end)
+            {
+                pos = pos_start + 1;
+                continue;
+            }
+            num2 = parse_number(buffer, pos, num_end);
+            pos = num_end;
+            total += num1 * num2;
+        }
+        // check for dont
+        else if (do_mul && custom_str_cmp(buffer + pos, "don't()"))
+        {
+            // move to next item
+            pos += 7;
+            do_mul = !do_mul;
             continue;
         }
-        num2 = parse_number(buffer, num_start, num_end);
-        printf("second: %d\n", num2);
-        total += num1 * num2;
-    } while (buffer[next_mul + 4] != 0);
+        // otherwise go to next item
+        else
+        {
+            pos++;
+        }
+    } while (buffer[pos + 4] != 0);
 
     return total;
 }
