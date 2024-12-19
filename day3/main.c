@@ -31,7 +31,7 @@ void load_file_to_buffer(FILE *fp, char *c, uint16_t len)
 
 /**
  * helper method that determines if a given substring is the start
- *      of a `mul(` command
+ *      of a given command
  *
  * @param px substring to check
  * @returns 1 if valid, 0 if invalid
