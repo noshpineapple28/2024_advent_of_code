@@ -43,6 +43,35 @@ uint8_t find_num_pages_in_manual(FILE *fp)
 // main methods
 
 /**
+ * a fun little bubble sort that swaps values if a page should
+ *      come after the given value
+ * 
+ * @param manual the manual we are sorting
+ * @param manual_len the length of the manual
+ */
+void order_incorrect_manual(uint8_t *manual, uint8_t manual_len)
+{
+    // holds swapping var
+    uint8_t swap;
+    for (uint8_t i = 0; i < manual_len; i++)
+    {
+        // sorts array
+        for (uint8_t j = 0; j < manual_len - i - 1; j++)
+        {
+            // swap if values are out of order
+            if (page_rules[manual[j]][manual[j + 1]])
+            {
+                // save the greater value
+                swap = manual[j];
+                // swap the two
+                manual[j] = manual[j + 1];
+                manual[j + 1] = swap;
+            }
+        }
+    }
+}
+
+/**
  * given a manual, it will check to see if it is valid given
  *      the predefined rules we found
  *
@@ -90,7 +119,7 @@ uint8_t read_manual(FILE *fp)
     uint8_t ret = 0;
     // get manual len
     uint8_t manual_len = find_num_pages_in_manual(fp);
-    
+
     // if 0, it means EOF. return EOF value
     if (!manual_len)
         return 100;
@@ -124,9 +153,17 @@ uint8_t read_manual(FILE *fp)
 
     // check validity
     ret = is_manual_valid(manual, manual_len);
-    // if valid return the middle value
+    // we only want the INVALID middle pages for **part 2**
+    //      for **part 1** just swap lines 160 and 165!
     if (ret)
+    {
+        ret = 0;
+    }
+    else
+    {
+        order_incorrect_manual(manual, manual_len);
         ret = manual[manual_len / 2];
+    }
 
     // free the manual
     free(manual);
@@ -215,3 +252,6 @@ void main()
     // close file!
     fclose(fp);
 }
+
+// 4556 too low
+// 4785 too high
