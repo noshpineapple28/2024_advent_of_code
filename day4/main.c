@@ -45,14 +45,14 @@ void load_file_to_buffer(FILE *fp, char **grid)
 }
 
 /**
- * helper method that determines if a secetion contains xmas
+ * helper method that determines if a secetion contains 'MAS'
  *
  * @param grid the string to check
  * @returns 1 if valid, 0 if invalid
  */
 uint8_t custom_str_cmp(char *px)
 {
-    char *cmp = "XMAS";
+    char *cmp = "MAS";
     uint8_t i = 0;
     while (cmp[i] != 0)
     {
@@ -110,90 +110,65 @@ char **init_file()
 uint8_t check_for_xmas(char **grid, uint8_t row, uint8_t col)
 {
     uint8_t matches = 0;
+    // Left Side M's
     /**
-     * * x x
-     * x o x
-     * x x x
+     * * x S
+     * x A x
+     * M x S
      */
-    if (row >= 3 && col >= 3)
+    if (row <= rows - 3 && col <= cols - 3)
     {
-        char val[4] = {grid[row][col], grid[row - 1][col - 1], grid[row - 2][col - 2], grid[row - 3][col - 3]};
-        matches += custom_str_cmp(val);
+        // down-right mas
+        char val1[3] = {grid[row][col], grid[row + 1][col + 1], grid[row + 2][col + 2]};
+        // up-right mas
+        char val2[3] = {grid[row + 2][col], grid[row + 1][col + 1], grid[row][col + 2]};
+        // add if both are correct
+        matches += (custom_str_cmp(val1) + custom_str_cmp(val2)) / 2;
     }
+    // Top Side M's
     /**
-     * x * x
-     * x o x
-     * x x x
+     * * x M
+     * x A x
+     * S x S
      */
-    if (row >= 3)
+    if (row <= rows - 3 && col <= cols - 3)
     {
-        char val[4] = {
-            grid[row][col],
-            grid[row - 1][col],
-            grid[row - 2][col],
-            grid[row - 3][col],
-        };
-        matches += custom_str_cmp(val);
+        // down-right mas
+        char val1[3] = {grid[row][col], grid[row + 1][col + 1], grid[row + 2][col + 2]};
+        // up-right mas
+        char val2[3] = {grid[row][col + 2], grid[row + 1][col + 1], grid[row + 2][col]};
+        // add if both are correct
+        matches += (custom_str_cmp(val1) + custom_str_cmp(val2)) / 2;
     }
+    // Right Side M's
     /**
-     * x x *
-     * x o x
-     * x x x
+     * S x *
+     * x A x
+     * S x M
      */
-    if (row >= 3 && col <= cols - 4)
+    if (row <= rows - 3 && col >= 2)
     {
-        char val[4] = {grid[row][col], grid[row - 1][col + 1], grid[row - 2][col + 2], grid[row - 3][col + 3]};
-        matches += custom_str_cmp(val);
+        // down-right mas
+        char val1[3] = {grid[row][col], grid[row + 1][col - 1], grid[row + 2][col - 2]};
+        // up-right mas
+        char val2[3] = {grid[row + 2][col], grid[row + 1][col - 1], grid[row][col - 2]};
+        // add if both are correct
+        matches += (custom_str_cmp(val1) + custom_str_cmp(val2)) / 2;
     }
+    // Bottom Side M's
     /**
-     * x x x
-     * * o x
-     * x x x
+     * S x S
+     * x A x
+     * M x *
      */
-    if (col >= 3)
+    if (row >= 2 && col >= 2)
     {
-        char val[4] = {grid[row][col], grid[row][col - 1], grid[row][col - 2], grid[row][col - 3]};
-        matches += custom_str_cmp(val);
-    }
-    /**
-     * x x x
-     * x o *
-     * x x x
-     */
-    if (col <= cols - 4)
-    {
-        char val[4] = {grid[row][col], grid[row][col + 1], grid[row][col + 2], grid[row][col + 3]};
-        matches += custom_str_cmp(val);
-    }
-    /**
-     * x x x
-     * x o x
-     * * x x
-     */
-    if (row <= rows - 4 && col >= 3)
-    {
-        char val[4] = {grid[row][col], grid[row + 1][col - 1], grid[row + 2][col - 2], grid[row + 3][col - 3]};
-        matches += custom_str_cmp(val);
-    }
-    /**
-     * x x x
-     * x o x
-     * x * x
-     */
-    if (row <= rows - 4)
-    {
-        char val[4] = {grid[row][col], grid[row + 1][col], grid[row + 2][col], grid[row + 3][col]};
-        matches += custom_str_cmp(val);
-    }
-    /**
-     * x x x
-     * x o x
-     * x x *
-     */
-    if (row <= rows - 4 && col <= cols - 4)
-    {
-        char val[4] = {grid[row][col], grid[row + 1][col + 1], grid[row + 2][col + 2], grid[row + 3][col + 3]};
-        matches += custom_str_cmp(val);
+        // down-right mas
+        char val1[3] = {grid[row][col], grid[row - 1][col - 1], grid[row - 2][col - 2]};
+        // up-right mas
+        char val2[3] = {grid[row][col - 2], grid[row - 1][col - 1], grid[row - 2][col]};
+        // add if both are correct
+        matches += (custom_str_cmp(val1) + custom_str_cmp(val2)) / 2;
     }
 
     return matches;
