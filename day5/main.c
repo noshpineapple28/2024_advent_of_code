@@ -252,6 +252,3 @@ void main()
     // close file!
     fclose(fp);
 }
-
-// 4556 too low
-// 4785 too high
